@@ -1,0 +1,136 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
+@inject IStringLocalizer<SharedResource> StringLocalizer
+
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+<style>
+    .selectClub {
+        background-image: linear-gradient(45deg, transparent 50%, gray 50%), linear-gradient(135deg, gray 50%, transparent 50%), linear-gradient(to right, #ccc, #ccc);
+        background-position: calc(100% - 16px) calc(1em + 2px), calc(100% - 11px) calc(1em + 2px), calc(100% - 2em) 0.5em;
+        background-size: 5px 5px, 5px 5px, 1px 1.5em;
+        background-repeat: no-repeat;
+    }
+
+        .selectClub:focus {
+            background-image: linear-gradient(45deg, #00639A 50%, transparent 50%), linear-gradient(135deg, transparent 50%, #00639A 50%), linear-gradient(to right, #ccc, #ccc);
+            background-position: calc(100% - 11px) 1em, calc(100% - 16px) 1em, calc(100% - 2em) 0.5em;
+            background-size: 5px 5px, 5px 5px, 1px 1.5em;
+            background-repeat: no-repeat;
+            border-color: #00639A;
+            outline: 0;
+        }
+</style>
+
+<ul class="navbar-nav navbar-right">
+    @{
+        var isSignedIn = SignInManager.IsSignedIn(User);
+        var user = isSignedIn ? UserManager.GetUserAsync(User).Result : null;
+        var pfpUri = user?.ProfilePicture?.Uri ?? "https://cdn.scmanagement.me/public/user_placeholder.png";
+    }
+    @if (isSignedIn)
+    {
+        <li>
+            <div class="dropdown d-none d-md-block">
+                <button class="btn fa-2xl shadow-none text-to-dark" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false" title=@StringLocalizer["User"]>
+                    <img src="@pfpUri" class="rounded-circle" style="width: 45px; height: 45px; object-fit:cover;" />
+                </button>
+                <ul class="dropdown-menu shadow" style="margin-top: 7px; left: -145px; width: 230px; border:none; border-radius:0;" id="Dropdown1">
+                    <li class="dropdown-item" style="padding: 5px;">
+                        <a class="nav-link text-to-dark dropdown-text" style="color:black;" asp-area="Identity" asp-page="/Account/Manage/Index" title=@StringLocalizer["Profile"]>@user?.FullName</a>
+                    </li>
+                    <li class="dropdown-item" style="padding: 5px;">
+                        <a class="nav-item nav-link text-to-dark" style="color:black;" asp-controller="User" asp-action="UpdateNotificationsSettings">@StringLocalizer["NotificationsSettings"]</a>
+                    </li>
+                    <li class="dropdown-item" style="padding: 5px;">
+                        <a class="nav-item nav-link text-to-dark" style="color:black;" asp-controller="Home" asp-action="TermsAndConditions">@StringLocalizer["Terms&Conditions"]</a>
+                    </li>
+                    <li class="dropdown-item" style="padding: 5px;">
+                        <a class="nav-link text-to-dark dropdown-text" style="color:black;" asp-controller="Payment" asp-action="Index">@StringLocalizer["Wallet"]</a>
+                    </li>
+                    <li class="dropdown-item" style="padding: 5px;">
+                        <a class="nav-link text-to-dark dropdown-text" style="color:black;" asp-controller="Subscription" asp-action="Index">@StringLocalizer["Subscriptions"]</a>
+                    </li>
+                    <li style="padding: 5px;" class="row">
+                        <div class="col-2">
+                            <i style="margin-left:15px; margin-right:5px;" class="fa-solid fa-moon fa-lg col text-to-dark"></i>
+                        </div>
+                        <div class="col-6">
+                            <label class="text-to-dark col" style="font-size: 100%;">@StringLocalizer["Dark mode"]</label>
+                        </div>
+                        <div class="col-4" style="text-align:right">
+                            <label class="switch">
+                                <input type="checkbox" onchange="darkThemeToggle(this)" id="darkToggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </li>
+                    <li style="padding: 5px;">
+                        @await Component.InvokeAsync("UserClubContext")
+                    </li>
+                    <li class="row" style="padding: 5px;">
+                        <div class="col-2 pt-2">
+                            <i style="margin-left:15px; margin-right:5px;" class="fa-solid fa-lg fa-earth-americas text-to-dark"></i>
+                        </div>
+                        <label class="col-6">
+                            @await Component.InvokeAsync("CulturePicker")
+                        </label>
+                    </li>
+                    <li class="dropdown-item" style="padding: 5px;">
+                        <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                            <button type="submit" style="color:black; text-align:left !important;" class="nav-link btn btn-link text-to-dark w-100 dropdown-text">@StringLocalizer["Logout"]</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </li>
+    }
+    else
+    {
+        <a type="button" class="btn btn-primary register ms-2" id="register" asp-area="Identity" asp-page="/Account/Register">@StringLocalizer["Sign up"]</a>
+        <a type="button" class="btn btn-primary signin ms-2 ms-md-3 mt-2 mt-md-0" id="signin" asp-area="Identity" asp-page="/Account/Login">@StringLocalizer["Sign in"]</a>
+        <li>
+            <div class="dropdown d-none d-md-block">
+                <button class="btn fa-solid fa-user fa-2xl shadow-none text-to-dark mt-3" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                <ul class="dropdown-menu shadow" style="margin-top: 7px; left: -145px; width: 300px; border:none; border-radius:0;" id="Dropdown1">
+                    <li style="padding: 5px; margin-top:10px;">
+                        <i style="margin-left:15px; margin-right:5px;" class="fa-solid fa-moon fa-lg text-to-dark"></i>
+                        <label class="text-to-dark">@StringLocalizer["Dark mode"]</label>
+                        <label class="switch" style="margin-left: 10px;">
+                            <input type="checkbox" onchange="darkThemeToggle(this)" id="darkToggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </li>
+                    <li class="row d-flex align-self-center" style="padding: 5px;">
+                        <div class="col-2 pt-2">
+                            <i style="margin-left:15px; margin-right:5px;" class="fa-solid fa-earth-americas fa-lg text-to-dark"></i>
+                        </div>
+                        <div class="col">
+                            <span >@await Component.InvokeAsync("CulturePicker")</span>
+                        </div>
+                        
+                    </li>
+                    <li class="dropdown-item" style="padding: 5px;">
+                        <a class="nav-item nav-link text-to-dark" style="color:black;" asp-controller="Home" asp-action="TermsAndConditions">@StringLocalizer["Terms&Conditions"]</a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+    }
+</ul>
+
+<script>
+    const dropdown = document.querySelector('.dropdown');
+    const dropdownM = document.querySelector('.dropdown-menu');
+    var elem = document.getElementById('dropdownMenuButton1');
+    var fatherElem = elem.parentNode;
+    if (window.innerWidth <= 768) {
+
+        dropdown.classList.remove("dropdown");
+        dropdownM.classList.remove("dropdown-menu");
+    } else {
+        dropdown.classList.add("dropdown");
+        dropdownM.classList.add("dropdown-menu");
+    }
+</script>

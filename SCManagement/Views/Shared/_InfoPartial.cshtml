@@ -1,0 +1,257 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
+@inject IStringLocalizer<SharedResource> StringLocalizer
+
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/calendar.css" asp-append-version="true" />
+
+<style>
+    section {
+        padding-top: 50px;
+        padding-bottom: 50px;
+    }
+
+        section h1 {
+            text-transform: uppercase;
+            font-weight: 900;
+            color: #7a44c2;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        section p {
+            font-size: 16px;
+            font-weight: 300;
+        }
+
+    #hero .col {
+        justify-content: center;
+        flex-direction: column;
+        display: flex;
+    }
+
+    #hero .img-col {
+        justify-content: flex-end;
+        margin-top: 100px;
+    }
+
+    #hero img {
+        max-width: 130%;
+        !important;
+        width: 130%;
+    }
+
+    .card-tutorial {
+        border: 0;
+        text-align: center;
+        background-color: white;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        border-top-left-radius:15px;
+        border-top-right-radius: 15px;
+        height: 324px;
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .card-tuts {
+        border: 0;
+        border-radius:20px;
+        text-align: center;
+        background-color: white;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        width: 18rem;
+    }
+
+    #hero .icon {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 20px;
+    }
+
+    #projects .projects {
+        margin-bottom: 50px;
+    }
+</style>
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <div class="row mt-5 mb-5">
+        <div id="calendar-full">
+            <div class="calendar-container" id="calendar-container">
+                <div class="calendar">
+                    <div class="year-header">
+                        <span class="left-button" id="prev"> &lang; </span>
+                        <span class="year" id="label"></span>
+                        <span class="right-button" id="next"> &rang; </span>
+                    </div>
+                    <table class="months-table">
+                        <tbody>
+                            <tr class="months-row">
+                                <td class="month text-to-dark">Jan</td>
+                                <td class="month text-to-dark">Feb</td>
+                                <td class="month text-to-dark">Mar</td>
+                                <td class="month text-to-dark">Apr</td>
+                                <td class="month text-to-dark">May</td>
+                                <td class="month text-to-dark">Jun</td>
+                                <td class="month text-to-dark">Jul</td>
+                                <td class="month text-to-dark">Aug</td>
+                                <td class="month text-to-dark">Sep</td>
+                                <td class="month text-to-dark">Oct</td>
+                                <td class="month text-to-dark">Nov</td>
+                                <td class="month text-to-dark">Dec</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table class="days-table">
+                        <td class="day text-to-dark">@StringLocalizer["Sun"]</td>
+                        <td class="day text-to-dark">@StringLocalizer["Mon"]</td>
+                        <td class="day text-to-dark">@StringLocalizer["Tue"]</td>
+                        <td class="day text-to-dark">@StringLocalizer["Wed"]</td>
+                        <td class="day text-to-dark">@StringLocalizer["Thu"]</td>
+                        <td class="day text-to-dark">@StringLocalizer["Fri"]</td>
+                        <td class="day text-to-dark">@StringLocalizer["Sat"]</td>
+                    </table>
+                    <div class="frame">
+                        <table class="dates-table" style="max-width:100%;">
+                            <tbody class="tbody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <button class="button" id="add-button">@StringLocalizer["AddEvent"]</button>
+                </div>
+            </div>
+            <div class="events-container">
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container-fluid">
+        <section id="hero">
+            <div class="container w-100">
+                <div class="row">
+                    <div class="col-lg-6 col-xs-12 col-md-6">
+                        <h1>@StringLocalizer["Hi"],<br>@StringLocalizer["WeAre"]</h1>
+                        <sapn class="text-to-dark">@StringLocalizer["ThisIs"]!</sapn>
+                    </div>
+                    <div class="col-lg-6 col-xs-12 col-md-6" style="max-width:40%; min-width:300px">
+                        <img src="~/img/Software.png" alt="imageSoftware" style="width:100%;">
+                    </div>
+                </div>
+                <div class="row cards mt-5 w-100">
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <div class="card-tuts">
+                            <div class="card-body">
+                                <img src="~/img/click.png" alt="click" class="icon">
+                                <h5 class="card-title">@StringLocalizer["Process"]</h5>
+                                <p class="card-text">@StringLocalizer["NeverWas"]!</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex justify-content-center mt-4 mt-sm-4 mt-md-0 mt-lg-0">
+                        <div class="card-tuts">
+                            <div class="card-body">
+                                <img src="~/img/list.png" alt="list" class="icon">
+                                <h5 class="card-title">@StringLocalizer["ManagEvents"]</h5>
+                                <p class="card-text">@StringLocalizer["ByUsing"].</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex justify-content-center mt-4 mt-sm-4 mt-md-0 mt-lg-0">
+                        <div class="card-tuts">
+                            <div class="card-body">
+                                <img src="~/img/megafone.png" alt="megafone" class="icon">
+                                <h5 class="card-title">@StringLocalizer["ManagClub"]</h5>
+                                <p class="card-text">@StringLocalizer["ManagYourClub"]</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="about-us">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6 col-xs-12 col-md-6">
+                        <img src="~/img/Software2.png" alt="Software" class="img-fluid" style="width: 100%;" />
+                    </div>
+                    <div class="col-lg-6 col-xs-12 col-md-6">
+                        <h1>@StringLocalizer["OurProject"]</h1>
+                        <p class="text-to-dark">@StringLocalizer["WePretend"]</p>
+                        <p class="text-to-dark">@StringLocalizer["YourClubStatistics"]!</p>
+                        <p class="text-to-dark">@StringLocalizer["Ready"]?</p>
+                        <a class="btn btn-primary me-5" style="color:white !important; border-radius: 10px; padding: 6px 12px; background-color: #00639A; border-color: #00639A; text-decoration:none; cursor:pointer;" asp-controller="Clubs" asp-action="Plans">@StringLocalizer["FeelReady"]!</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div class="container mt-4">
+            <div class="row align-items-center projects">
+                <div class="col">
+                    <h1>@StringLocalizer["FuncsTutorial"]</h1>
+                    <p class="text-to-dark">@StringLocalizer["SomeFunc"]!</p>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-lg-4 col-xs-12 col-md-4">
+                        <div class="card-tutorial mb-3" style="min-height:300px">
+                            <img src="~/img/Map.png" alt="Functionality1" style="border-top-left-radius:15px; border-top-right-radius:15px; height:50%; width:100%; object-fit:cover;">
+                            <div class="card-body h-50">
+                                <h5 class="card-title">@StringLocalizer["PutPath"]!</h5>
+                                <p class="card-text">@StringLocalizer["FuncOne"].</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-xs-12 col-md-4">
+                        <div class="card-tutorial mb-3" style="min-height:300px">
+                            <img src="~/img/Func2.jpeg" alt="Functionality2" style="border-top-left-radius:15px; border-top-right-radius:15px; height:50%; width:100%; object-fit:cover;">
+                            <div class="card-body h-50">
+                                <h5 class="card-title">@StringLocalizer["AddPeople"]!</h5>
+                                <p class="card-text">@StringLocalizer["FuncTwo"]!</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-xs-12 col-md-4">
+                        <div class="card-tutorial mb-3" style="min-height:300px">
+                            <img src="~/img/Func3.jpeg" alt="Functionality3" style="border-top-left-radius:15px; border-top-right-radius:15px; height:50%; width:100%; object-fit:cover;">
+                            <div class="card-body h-50">
+                                <h5 class="card-title">@StringLocalizer["ManagAtl"]!</h5>
+                                <p class="card-text">@StringLocalizer["FuncThree"]!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+    </div>
+
+}
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.4/index.global.min.js'></script>
+<script src="~/js/calendar.js" asp-append-version="true"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script>
+    var strings = {
+        "noEvents": '@Html.Raw(StringLocalizer["NoEvents"].Value.ToString())',
+    };
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth'
+        });
+        calendar.render();
+    });
+
+    var date = document.getElementsByClassName('table-date');
+    for (let i = 0; i < date.length; i++) {
+        date[i].classList.add("text-to-dark");
+    }
+
+
+</script>

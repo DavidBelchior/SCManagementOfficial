@@ -1,0 +1,109 @@
+﻿@model IEnumerable<SCManagement.Services.PaymentService.Models.Payment>
+@inject IStringLocalizer<SharedResource> StringLocalizer
+
+@{
+    ViewData["Title"] = @StringLocalizer["PaymentsReceived"];
+}
+
+
+<link rel="stylesheet" href="~/lib/DataTables/DataTables-1.13.3/css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="~/lib/DataTables/Responsive-2.4.0/css/responsive.bootstrap.css">
+
+<div class="container-fluid ps-5 pe-5">
+    <h1 style="margin-top:130px !important;" class="text-to-dark">@StringLocalizer["PaymentsReceived"]</h1>
+    <div class="card mt-5 shadow" style="min-height:650px !important; height:fit-content !important; border-radius:20px;">
+        <div class="card-body">
+            <table id="table_payments" class="display" style="width:100%!important;">
+                <thead>
+                    <tr>
+                        <th class="text-to-dark"> 
+                            @Html.DisplayNameFor(model => model.User)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.Product.Name)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.Value)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.PaymentMethod)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.PaymentStatus)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.CreatedAt)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.PayedAt)
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.User.FullName)
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.Product.Name)
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.Value)€
+                            </td>
+                            <td class="text-to-dark">
+                                @(item.PaymentMethod != null ? StringLocalizer[item.PaymentMethod.ToString()].Value : "")
+                            </td>
+                            <td class="text-to-dark">
+                                @StringLocalizer[item.PaymentStatus.ToString()].Value
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.CreatedAt)
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.PayedAt)
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script type="text/javascript" charset="utf8" src="/lib/jquery/dist/jquery.js"></script>
+<script type="text/javascript" charset="utf8" src="/lib/DataTables/DataTables-1.13.3/js/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf8" src="/lib/DataTables/Responsive-2.4.0/js/dataTables.responsive.js"></script>
+<script type="text/javascript" charset="utf8" src="/lib/DataTables/datatables.min.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $.noConflict();
+        $("#table_payments").DataTable({
+            responsive: true,
+            order: [[1, 'desc']],
+            columnDefs: [
+                { orderable: false, targets: [-1] }
+            ],
+            language: {
+                "lengthMenu": "@StringLocalizer["Show"] _MENU_ @StringLocalizer["EntriesDatatable"]",
+                "emptyTable": "@StringLocalizer["EmptyMessage"]",
+                "search": "@StringLocalizer["Search"]",
+                "zeroRecords": "@StringLocalizer["NoMatching"]",
+                "processing": "@StringLocalizer["Processing"]",
+                "infoFiltered": "(@StringLocalizer["Filtered"] @StringLocalizer["From"] _MAX_ total @StringLocalizer["EntriesDatatable"])",
+                "info": "@StringLocalizer["Showing"] _START_ @StringLocalizer["To"] _END_ @StringLocalizer["OfDatatable"] _TOTAL_ @StringLocalizer["EntriesDatatable"]",
+                "infoEmpty": "@StringLocalizer["Showing"] 0 @StringLocalizer["OfDatatable"] 0 @StringLocalizer["EntriesDatatable"]",
+                "paginate": {
+                    first: "@StringLocalizer["First"]",
+                    last: "@StringLocalizer["Last"]",
+                    next: "@StringLocalizer["Next"]",
+                    previous: "@StringLocalizer["Previous"]",
+                },
+            },
+        });
+        setTheme(localStorage.getItem("theme") || "light")
+    });
+</script>

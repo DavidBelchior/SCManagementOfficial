@@ -1,0 +1,65 @@
+﻿@page
+@using SCManagement
+@inject IStringLocalizer<SharedResource> StringLocalizer
+@model RegisterConfirmationModel
+@{
+    ViewData["Title"] = @StringLocalizer["Register confirmation"];
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SCManagement</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/register_and_login.css" asp-append-version="true" />
+    <link rel="icon" type="image/x-icon" href="/img/icon.ico">
+</head>
+<body>
+
+@{
+    if (@Model.DisplayConfirmAccountLink)
+    {
+<p>
+    This app does not currently have a real email sender registered, see <a href="https://aka.ms/aspaccountconf">these docs</a> for how to configure a real email sender.
+    Normally this would be emailed: <a id="confirm-link" href="@Model.EmailConfirmationUrl">Click here to confirm your account</a>
+</p>
+    }
+    else
+    {
+        <!-- Section: Design Block -->
+        <section class="text-center">
+            <!-- Background image -->
+            <div class="p-5 bg-image" style="
+            background-image: url('/img/baseball_stadium.jpg');
+            background-position:center;
+            height: 300px;
+            "></div>
+            <!-- Background image -->
+            <div class="container">
+                <div class="card mx-4 mx-md-5 shadow-5-strong" style="
+            margin-top: -100px;
+            background: hsla(0, 0%, 85%, 0.3);
+            backdrop-filter: blur(30px);
+            border-radius:20px;
+            ">
+                    <div class="card-body py-5 px-md-5">
+                        <div class="row d-flex mt-5 justify-content-center">
+                            <div class="col-lg-6 col-12">
+                                <h2 class="fw-bold mt-3 mb-4">@ViewData["Title"]</h2>
+                                <p> @StringLocalizer["StatusMessage_VerificationEmail"]</p>
+                                <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">@StringLocalizer["Resend email confirmation"]</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+    }
+}
+</body>
+</html>

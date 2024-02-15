@@ -1,0 +1,145 @@
+﻿@model SCManagement.Models.Club
+@inject IStringLocalizer<SharedResource> StringLocalizer
+
+@{
+    ViewData["Title"] = @StringLocalizer["Details"];
+    string cultureInfo = Thread.CurrentThread.CurrentCulture.Name;
+}
+
+
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <span onclick="$('#modal').hide()" class="close">&times;</span>
+        <div id="modal-inner-content">
+        </div>
+    </div>
+</div>
+
+<div>
+    <div class="container-fluid m-0 pb-5 pt-2" id="colorthiefobj" style="height:30%;">
+        <div class="row mt-5">
+            <div class="col-4 d-flex justify-content-center ms-5">
+                <img id="clubPicture"
+                     src="@Model.Photography.Uri"
+                     crossorigin="anonymous"
+                     class="rounded-circle"
+                     width="150"
+                     height="150" />
+            </div>
+            <div class="col text-white">
+                <h1>@Html.DisplayFor(model => model.Name)</h1>
+            </div>
+        </div>
+    </div>
+    <div class="container d-md-flex" style="margin-top:-30px;">
+        <div class="card col-md row me-md-5 mb-3 mb-md-0 shadow" style="border-radius:20px;">
+            <div class="card-body" style="margin-top:0 !important">
+                <div class="row justify-content-end">
+                    @if (ViewBag.AlreadyPartner == false)
+                    {
+                        <form asp-action="Associate">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            <input name="Id" value="@Model.Id" hidden />
+                            <div class="form-group mt-3">
+                                <input type="submit"
+                                       value="@StringLocalizer["Become partner"] (@Model.ClubPaymentSettings.QuotaFee€/@StringLocalizer[Model.ClubPaymentSettings.QuotaFrequency.ToString()])"
+                                       class="btn btn-primary @(ViewBag.IsClubMember == true ? "disabled": "")"
+                                       style="border-radius: 10px; background-color: #00639A; border-color: #00639A; float:right;" />
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <a href="/Subscription?subId=@ViewBag.SubId"
+                           class="btn btn-primary mt-3"
+                           style="max-width:fit-content; border-radius: 10px; background-color: #00639A; border-color: #00639A; margin-right: calc(var(--bs-gutter-x) * .5);">
+                            @StringLocalizer["Already Partner"] (@Model.ClubPaymentSettings.QuotaFee€/@StringLocalizer[Model.ClubPaymentSettings.QuotaFrequency.ToString()])
+                        </a>
+                    }
+                </div>
+                <div class="col-12 mt-5 d-md-flex">
+                    <div class="col-md-4 col-12 ms-4"><h4 class="text-to-dark">@StringLocalizer["About Us"]:</h4></div>
+                    <div class="col-md-6 col-10 mt-1 ms-md-0 ms-4"><span class="text-to-dark">@Html.DisplayFor(model => model.ClubTranslations.FirstOrDefault(c => c.Atribute == "About").Value)</span></div>
+                </div>
+                <div class="col-12 mt-5 d-md-flex">
+                    <div class="col-md-4 col-12 ms-4"><h4 class="text-to-dark">@StringLocalizer["Terms and conditions"]:</h4></div>
+                    <div class="col-md-6 col-10 mt-1 ms-md-0 ms-4"><span class="text-to-dark">@Html.DisplayFor(model => model.ClubTranslations.FirstOrDefault(c => c.Atribute == "TermsAndConditions").Value)</span></div>
+                </div>
+                <div class="col-12 mt-5 mb-5 d-md-flex">
+                    <div class="col-md-4 col-12 ms-4"><h4 class="text-to-dark">@StringLocalizer["Modalities"]:</h4></div>
+                    <div class="col-md-6 col-10 mt-1 ms-md-0 ms-4">
+                        <span class="text-to-dark">@String.Join(", ", Model.Modalities.Select(s => s.ModalityTranslations.Where(m => m.Language == cultureInfo).First().Value))</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card col-md-3 row shadow" style="border-radius:20px; height:fit-content !important;">
+            <div class="card-body" style="margin-top:0 !important; height:fit-content !important;">
+                <h4 class="mt-4 text-to-dark">@StringLocalizer["Contacts"]</h4>
+                <div class="row mt-3">
+                    <div class="col-auto">
+                        <i class="fa-solid fa-envelope text-to-dark"></i>
+                    </div>
+                    <div class="col"><span class="text-to-dark">@Html.DisplayFor(model => model.Email)</span></div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-auto">
+                        <i class="fa-solid fa-phone text-to-dark"></i>
+                    </div>
+                    <div class="col-auto"><span class="text-to-dark">@Html.DisplayFor(model => model.PhoneNumber)</span></div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-auto">
+                        <i class="fa-solid fa-location-dot text-to-dark"></i>
+                    </div>
+                    <div class="col-10">
+                        @if (Model.Address != null)
+                        {
+                            <span class="text-to-dark">@Model.Address.AddressString</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script>
+    var colorThief = new ColorThief();
+
+    // Make sure everything is loaded
+    window.onload = function () {
+        const img = document.getElementById('clubPicture');
+        let color;
+        // Make sure image is finished loading
+        if (img.complete) {
+            color = colorThief.getColor(img);
+        } else {
+            image.addEventListener('load', function () {
+                color = colorThief.getColor(img);
+            });
+        }
+
+        // Use the new color as background for body
+        document.getElementById('colorthiefobj').style.background = 'linear-gradient(0deg, rgb(0,0,0) 0%, rgb(' + color + ') 100%)';
+
+    };
+
+    function openBeMember(id) {
+        $.ajax({
+            url: '/Clubs/PartnerPartial/@Model.Id',
+            type: 'GET',
+            async: false,
+            success: function (result) {
+                $("#modal-inner-content").html(result);
+                $("#modal").show();
+            }
+        });
+    }
+
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, "/Clubs/" + "@Model.Id");
+    }
+</script>

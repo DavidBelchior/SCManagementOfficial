@@ -1,0 +1,101 @@
+﻿@model SCManagement.Controllers.ClubsController.CreateClubModel
+@inject IStringLocalizer<SharedResource> StringLocalizer
+@{
+    ViewData["Title"] = @StringLocalizer["Create a club"];
+    var plan = (SCManagement.Services.PaymentService.Models.Product)ViewBag.SelectedPlan;
+
+}
+<head>
+    <link rel="stylesheet" href="~/lib/chosen_v1.8.7/chosen.min.css">
+</head>
+
+
+<style>
+    th{
+        border: 1px solid white;
+    }
+
+    td{
+        border: 1px solid white;
+    }
+</style>
+
+<section class="text-center">
+    <!-- Background image -->
+    <div class="p-5 bg-image" style="
+            background-image: url('/img/baseball_stadium.jpg');
+            background-position:center;
+            height: 300px;
+            "></div>
+    <!-- Background image -->
+    <div class="container">
+        <div class="card mx-4 mx-md-5 shadow-5-strong" style="
+            margin-top: -100px;
+            background: hsla(0, 0%, 85%, 0.3);
+            background-position:center;
+            backdrop-filter: blur(30px);
+            border-radius:20px;
+            ">
+            <div class="card-body py-5 px-md-5" style="margin-top:0 !important;">
+                <!-- Back to Master Page -->
+                <div class="position-absolute top-0 start-0 ps-2 pt-2">
+                    <a class="nav-link fw-bold fs-4 text-to-dark" asp-controller="Clubs" style="color:black;" asp-action="Plans">@StringLocalizer["Back"]</a>
+                </div>
+                <div class="row d-flex mt-5 justify-content-center">
+                    <div class="col-lg-6 col-12">
+                        <form asp-action="Create">
+                            <h3><strong class="text-to-dark">@StringLocalizer["Create a club"]</strong></h3>
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                            <div class="form-floating mt-4">
+                                <input id="idName" asp-for="Name" placeholder=@StringLocalizer["Name"] class="form-control" />
+                                <label asp-for="Name" class="control-label"></label>
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <label asp-for="ModalitiesIds" class="control-label me-2" style="float:left;"></label>
+                                <select multiple required data-placeholder=" " style="width: fit-content !important;" asp-for="ModalitiesIds" class="form-control" asp-items="ViewBag.Modalities"></select>
+                                <span asp-validation-for="ModalitiesIds" class="text-danger"></span>
+                            </div>
+
+                            
+                            <div class="mt-4">
+                                <strong class="text-to-dark" style="float:left !important; margin-left:5px; margin-bottom:5px;">Selected Plan:</strong>
+                                <table class="table table-sm" style="border-radius:10px !important;">
+                                    <tr style="background-color:#f0f0f0;">
+                                        <th>@Html.DisplayNameFor(_=>plan.Name)</th>
+                                        <th>@Html.DisplayNameFor(_=>plan.Value)</th>
+                                        <th>@Html.DisplayNameFor(_=>plan.AthleteSlots)</th>
+                                        <th>@Html.DisplayNameFor(_=>plan.Frequency)</th>
+                                    </tr>
+                                    <tr style="background-color: white;">
+                                        <td>@plan.Name</td>
+                                        <td>@plan.Value€</td>
+                                        <td>@plan.AthleteSlots</td>
+                                        <td>@StringLocalizer[plan.Frequency.ToString()]</td>
+                                    </tr>
+                                </table>
+                                <input hidden asp-for="PlanId" value="@plan.Id" />
+                            </div>
+                            
+
+                            <div class="form-group mt-3">
+                                <input type="submit" value=@StringLocalizer["Create"] class="btn btn-primary" style="border-radius: 10px; background-color: #00639A; border-color: #00639A;" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+@section Scripts {
+    @{
+        <script src="~/lib/jquery/dist/jquery.min.js"></script>
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        <script src="/lib/chosen_v1.8.7/chosen.jquery.min.js" type="text/javascript"></script>
+    }
+    }

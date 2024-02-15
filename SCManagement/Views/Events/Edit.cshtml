@@ -1,0 +1,542 @@
+﻿@model SCManagement.Controllers.EventsController.EventModel
+@inject IStringLocalizer<SharedResource> StringLocalizer
+
+@{
+    ViewData["Title"] = @StringLocalizer["Edit"];
+}
+
+<script src="https://api.tiles.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.js"></script>
+<link href="https://api.tiles.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.css"
+      rel="stylesheet" />
+<!-- Import Mapbox GL Draw -->
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.0/mapbox-gl-draw.js"></script>
+<link rel="stylesheet"
+      href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.0/mapbox-gl-draw.css"
+      type="text/css" />
+<!-- Import Mapbox GL JS  -->
+<script src="https://api.tiles.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.js"></script>
+<link href="https://api.tiles.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.css"
+      rel="stylesheet" />
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet"
+      href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css"
+      type="text/css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+      integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+      crossorigin="" />
+
+<style>
+
+    #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+        left: 0;
+        border-radius: 20px;
+        height: 100%
+    }
+
+    .mapboxgl-canvas-container {
+        height: 100vh;
+    }
+
+    .selected {
+        background-color: white !important;
+        color: black !important;
+        border: 1px solid black;
+    }
+
+    .lang-btn-name {
+        background-color: #00639A;
+        color: white;
+        border-bottom: none !important;
+        width: 60px;
+        border: 1px solid black;
+    }
+
+    .lang-btn-details {
+        background-color: #00639A;
+        color: white;
+        border-bottom: none !important;
+        width: 60px;
+        border: 1px solid black;
+    }
+
+    .translatebtn {
+        color: white;
+        border-radius: 2px;
+        background-color: #00639A;
+        border: 1px solid black;
+    }
+
+    .toast {
+        position: fixed;
+        top: 10vh;
+        left: 0;
+        border: 2px solid red;
+        transform: translateY(-100px);
+        animation: slideRight 1s ease forwards .5s;
+    }
+
+    #errorModel {
+        margin-top: 20%;
+        margin-bottom: 0;
+        max-height: 20%;
+        max-width: 20%;
+    }
+
+    @@media only screen and (max-width: 1000px) {
+        #errorModel {
+            max-height: 20%;
+            max-width: 60%;
+        }
+    }
+
+</style>
+
+<div class="container ps-5 pe-5">
+    <h1 style="margin-top:130px !important;" class="text-to-dark">Edit Event</h1>
+    <hr />
+    <div class="row">
+        <form id="myForm" asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="Name">
+                <label class="control-label text-to-dark">@StringLocalizer["Name"]</label>
+                <div class="language-select">
+                    @foreach (CultureInfo lang in ViewBag.Languages)
+                    {
+                        <input type="button" class="lang-btn lang-btn-name" id="btn-name-@lang.Name" onclick="toggleLang('@lang.Name','name')" data-lang="@lang.Name" value=@lang.TwoLetterISOLanguageName.ToUpper()>
+                    }
+                    <input type="button" class="lang-btn translatebtn" onclick="translateFn('name')" value="translate" />
+
+                </div>
+                <div style="margin-left:12px; z-index:0;">
+                    @Html.EditorFor(x => x.EventTranslationsName)
+                </div>
+                <span class="text-to-dark" style="top:-20px !important;">*@StringLocalizer["Minimum 1 character"]</span>
+            </div>
+            <div class="form-floating mt-3">
+                <input asp-for="StartDate" id="startDateTime" class="form-control" min="@Model.CreationDate.Value.AddMinutes(10).ToString("yyyy-MM-ddTHH:mm")" max="@DateTime.Now.AddYears(100).ToString("yyyy-MM-ddTHH:mm")" onChange="changedStart(this)" />
+                <label asp-for="StartDate" class="control-label"></label>
+                <span asp-validation-for="StartDate" class="text-danger" id="spanStartDate"></span>
+                <span class="text-danger" id="spanStartDateError" style="display:none">@StringLocalizer["Error_This_Date_Is_Not_Allowed"]</span>
+            </div>
+            <div class="form-floating mt-3">
+                <input asp-for="EndDate" id="endDateTime" class="form-control" min="@Model.StartDate.ToString("yyyy-MM-ddTHH:mm")" max="@DateTime.Now.AddYears(100).ToString("yyyy-MM-ddTHH:mm")" />
+                <label asp-for="EndDate" class="control-label"></label>
+                <span asp-validation-for="EndDate" class="text-danger"></span>
+                <span class="text-danger" id="spanEndDateError" style="display:none">@StringLocalizer["Error_This_Date_Is_Not_Allowed"]</span>
+            </div>
+
+            <div id="LimitEnrollContainer" class="form-floating mt-3">
+                <input asp-for="EnrollLimitDate" class="form-control" id="EnrollLimitDate" min="@Model.CreationDate.Value.ToString("yyyy-MM-ddTHH:mm")" max="@Model.StartDate.ToString("yyyy-MM-ddTHH:mm")" onchange="CheckLimitEnrollDate()" />
+                <label asp-for="EnrollLimitDate" class="control-label"></label>
+                <span asp-validation-for="EnrollLimitDate" class="text-danger"></span>
+                <span class="text-danger" id="spanLimiteEnrollError" style="display:none">@StringLocalizer["Error_Registration_limit_Event"]</span>
+                <span class="text-danger" id="spanLimiteEnrollError2" style="display:none">@StringLocalizer["Error_This_Date_Is_Not_Allowed"]</span>
+            </div>
+            <div class="Details mt-3">
+                <label class="control-label text-to-dark">@StringLocalizer["Details"]</label>
+                <div class="language-select">
+                    @foreach (CultureInfo lang in ViewBag.Languages)
+                    {
+                        <input type="button" class="lang-btn lang-btn-details" id="btn-details-@lang.Name" onclick="toggleLang('@lang.Name','details')" data-lang="@lang.Name" value=@lang.TwoLetterISOLanguageName.ToUpper()>
+                    }
+                    <input type="button" class="lang-btn translatebtn" onclick="translateFn('details')" value="translate" />
+
+                </div>
+                <div style="margin-left:12px; z-index:0;">
+                    @Html.EditorFor(x => x.EventTranslationsDetails)
+                </div>
+            </div>
+
+            <div class="form-group form-check mt-3">
+                <label class="form-check-label text-to-dark">
+                    <input class="form-check-input" asp-for="IsPublic" /> @Html.DisplayNameFor(model => model.IsPublic)
+                </label>
+            </div>
+            <div class="form-floating mt-3">
+                <input type="number" step="0.01" min="0" asp-for="Fee" id="txtFee" class="form-control" readonly="@(ViewBag.ValidKey == false)" />
+                <label asp-for="Fee" class="control-label"></label>
+                <span asp-validation-for="Fee" class="text-danger"></span>
+                <span style="color: orange;">@(ViewBag.ValidKey == false ? StringLocalizer["Warning_InvalidKey"] : "")</span>
+            </div>
+            <div class="form-floating mt-3">
+                <input type="number" step="1" min="0" asp-for="MaxEventEnrolls" id="txtMaxEventEnrolls" class="form-control" />
+                <label asp-for="MaxEventEnrolls" class="control-label"></label>
+                <span asp-validation-for="MaxEventEnrolls" class="text-danger"></span>
+            </div>
+
+
+            <div class="form-floating mt-3">
+                <select asp-for="EventResultType" class="form-control" id="selectEventResultType" asp-items="ViewBag.EventResultType"></select>
+                <label asp-for="EventResultType" class="control-label"></label>
+                <span asp-validation-for="EventResultType" class="text-danger"></span>
+            </div>
+
+            <div id="LocationContainer" class="form-group mt-3 d-block d-md-flex">
+                <div class="col-12 col-md-auto">
+                    <a id="btnAddLocation" onclick="AddLocation()" class="form-check-input me-2" style="color:white; border-radius: 10px;padding: 6px 12px; background-color: #00639A; border-color: #00639A; cursor:pointer; text-decoration:none;"></a>
+                </div>
+
+                <input asp-for="LocationString" type="hidden" id="Location" />
+
+                <div class="col-12 col-md-auto mt-2 mt-md-0">
+                    @if (@Model.LocationId != null && Model.Location != null)
+                    {
+                        <span id="spanStreet" class="text-to-dark">@Model.Location.AddressString</span>
+
+                    }
+                </div>
+                <input id="coordX" type="hidden" disabled value="@(Model.Location != null ? Model.Location.CoordinateX : "")" />
+                <input id="coordY" type="hidden" disabled value="@(Model.Location != null ? Model.Location.CoordinateY : "")" />
+            </div>
+
+            <input asp-for="Route" type="hidden" class="form-control" id="ev" />
+
+            <div class="form-group form-check mt-3">
+                <label class="form-check-label text-to-dark">
+                    <input id="ckbHaveRoute" class="form-check-input" asp-for="HaveRoute" onchange="ToggleMapBox()" /> @Html.DisplayNameFor(model => model.HaveRoute)
+                </label>
+            </div>
+
+            <div id="AddressContainer" class="form-floating mt-3">
+                <input asp-for="AddressByPath" readonly class="form-control" id="AddressByPath" />
+                <label asp-for="AddressByPath" class="control-label"></label>
+            </div>
+
+            <input type="hidden" class="form-control" id="path" value="@((Model.Route != null) ? Model.Route : "null")" />
+            <span id="locationText" class="text-to-dark"></span> <br /> <br />
+            <a id="tutorialBtn" onclick="showTutorial()" class="mt-4 d-none" style="color:white; margin-top:4% !important; border-radius: 10px; background-color: #00639A; border-color: #00639A; padding: 6px 12px; text-decoration:none;">Tutorial</a>
+            <div id="cardMapBox" class="mt-3">
+                <div class="card card-to-dark col-xs-12 col-sm-12 col-md-7 mt-sm-5 mt-5 mt-lg-0 mt-md-0" style="min-height:400px;  width:100% !important;">
+                    <div class="card-body">
+                        <div id='map'></div>
+                   </div>
+                </div>
+            </div>
+
+            <div id="modal" class="modal" style="overflow:hidden;">
+                <div class="modal-content" style="width:90%; height:90%; padding:0; margin-top:20px; border-radius:15px !important; overflow:scroll;">
+                    <span onclick="$('#modal').hide()" class="close text-to-dark" style="z-index: 1; right:50px !important; position:absolute; margin-top:15px; color:black;"><i class="fa-solid fa-xmark"></i></span>
+                    <div class="container mt-5">
+                        <h2 class="text-to-dark">Tutorial</h2>
+                        <hr />
+                        <span class="col-8 text-to-dark" style="text-align:center;">@StringLocalizer["IntroTutorial"]</span>
+
+                        <div class="mt-3">
+                            <img src="~/img/SearchMap.png" width="100%" height="auto" />
+                        </div>
+
+                        <div class="row d-flex align-items-center mt-3">
+                            <span class="col-8 text-to-dark" style="text-align:center;">@StringLocalizer["SearchTutorial"]</span>
+                            <div class="col-4">
+                                <img src="~/img/SearchBarMap.png" width="auto" height="auto" />
+                            </div>
+                        </div>
+                        <div class="row d-flex align-items-center mt-3">
+                            <span class="col-8 text-to-dark" style="text-align:center;">@StringLocalizer["SaveTutorial"]</span>
+                            <div class="col-4">
+                                <img src="~/img/SaveMap.png" width="auto" height="auto" />
+                            </div>
+                        </div>
+                        <div class="row d-flex align-items-center mt-3">
+                            <span class="col-8 text-to-dark" style="text-align:center;">@StringLocalizer["DrawTutorial"]</span>
+                            <div class="col-4">
+                                <img src="~/img/DrawMap.png" width="auto" height="auto" />
+                            </div>
+                        </div>
+                        <div class="row d-flex align-items-center mt-3 mb-5">
+                            <span class="col-8 text-to-dark" style="text-align:center;">@StringLocalizer["DeleteTutorial"]</span>
+                            <div class="col-4">
+                                <img src="~/img/DeleteMap.png" width="auto" height="auto" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" disabled id="tradPlaceholder" value="@StringLocalizer["PlaceholderAddress"].Value.ToString()" />
+            <div class="form-group mt-3 d-flex">
+                <input type="submit" value="Save" class="btn btn-primary" style="color:white; border-radius: 10px; background-color: #00639A; border-color: #00639A;" />
+                <div id="modal1" class="modal">
+                    <div id="errorModel" class="modal-content">
+                        <span class="text-to-dark">@StringLocalizer["Are you sure you want to cancel? All progress will be lost!"]</span>
+                        <div class="d-flex justify-content-end mt-3">
+                            <a onclick="$('#modal1').hide()" style="color:white; padding: 6px 12px; border-radius: 10px; background-color: #00639A; border-color: #00639A; margin-right:3%;">@StringLocalizer["Back"]</a>
+                            <a asp-action="Index" class="btn btn-primary ms-3" style="color:white; padding: 6px 12px; border-radius: 10px; background-color: red; border-color: red;"><strong>@StringLocalizer["Cancel"]</strong></a>
+                        </div>
+                    </div>
+                </div>
+                <a onclick="toggleRemoveModal()" class="ms-3" style="color:white; padding: 6px 12px; border-radius: 10px; background-color: red; border-color: red; text-decoration:none;">@StringLocalizer["Cancel"]</a>
+
+            </div>
+            <input type="hidden" asp-for="EventAux" id="EventAux"/>
+
+            <div class="toast align-items-center" aria-live="assertive" aria-atomic="true" style="z-index:2;">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <strong id="alertText"></strong>
+                    </div>
+                    <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" onclick=" $('.toast').hide();" aria-label="Close"></button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="~/js/InitialConfigMapBox.js" asp-append-version="true"></script>
+<script type="text/javascript">
+    function closeToast() {
+        $(".toast").hide();
+    }
+    function toggleRemoveModal() {
+        $("#modal1").show();
+    }
+
+    function showTutorial() {
+        $('#modal').show();
+    }
+
+    function changedStart(event) {
+        document.getElementById("endDateTime").setAttribute("min", event.value)
+        document.getElementById("EnrollLimitDate").setAttribute("max", event.value)
+    }
+
+    function toggleLang(lang, elemento) {
+        const btns = document.querySelectorAll(`input.lang-btn-${elemento}`)
+        for (let bt of btns) {
+            bt.getAttribute("id") == `btn-${elemento}-${lang}` ? bt.classList.add("selected") : bt.classList.remove("selected")
+        }
+
+        const textareas = document.querySelectorAll(`div.${elemento}-lang`)
+        for (let ta of textareas) {
+            ta.getAttribute("id") == `${elemento}-${lang}` ? ta.classList.remove("d-none") : ta.classList.add("d-none")
+        }
+    }
+
+    //translate("about")
+    function translateFn(elemento) {
+        const textareas = document.querySelectorAll(`div.${elemento}-lang > textarea`)
+        const selectedLang = document.querySelectorAll(`input.selected.lang-btn-${elemento}`)[0].getAttribute("data-lang")
+        const selectedContent = document.querySelectorAll(`div#${elemento}-${selectedLang} > textarea`)[0]
+
+        for (let ta of textareas) {
+            if (ta.value == "" && ta.getAttribute("data-lang") != selectedLang) {
+                getTranslation(ta, selectedContent.value, selectedLang, ta.getAttribute("data-lang"))
+            }
+        }
+    }
+
+    function getTranslation(ta, content, fromLang, toLang) {
+        //ajax
+        //return do texto traduzido do pedido
+        $.ajax({
+            type: 'Post',
+            url: '/Translation/Translation',
+            data:
+            {
+                content: content,
+                fromLang: fromLang,
+                toLang: toLang
+            },
+        }).done(function (response) {
+            console.log("Sucess")
+            ta.value = response[0].translations[0].text
+
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            console.log("Erro: " + textStatus + ", " + errorThrown)
+            console.log("Resposta do servidor: " + jqXHR.responseText)
+        })
+    }
+
+    function checkLimitEnrollDateIsValid(){
+        let startDate = new Date('@Model.StartDate');
+        let currentDate = new Date().toLocaleString();;
+
+        if (startDate <= currentDate) {
+            document.getElementById("LimitEnrollContainer").style.display = "none"
+        }else{
+            document.getElementById("LimitEnrollContainer").style.display = "block"
+        }
+    }
+
+    window.onload = function () {
+        document.getElementById("myForm").addEventListener("submit", validateForm);
+        
+        const culture = "@ViewBag.CultureInfo"
+        toggleLang(culture, "details")
+        toggleLang(culture, "name")
+
+        checkLimitEnrollDateIsValid();
+
+        ToggleMapBox();
+        
+    }
+
+
+    function ToggleMapBox() {
+        let mapBox = document.getElementById("cardMapBox");
+        let addressContainer = document.getElementById("AddressContainer");
+        let locationContainer = document.getElementById("LocationContainer");
+        let ckbHaveRoute = document.getElementById("ckbHaveRoute");
+
+        let spanStreet = document.getElementById("spanStreet");
+        let btnAddLocation = document.getElementById("btnAddLocation");
+        let tutorialBtn = document.getElementById("tutorialBtn");
+
+        document.getElementById("Location").value = null;
+
+        if (ckbHaveRoute.checked == true) {
+            mapBox.style.display = "block";
+            addressContainer.style.display = "block";
+            
+            btnAddLocation.style.display ="none";
+            
+            if(spanStreet)
+                spanStreet.style.display = "none";
+            locationContainer.style.display = "none";
+            tutorialBtn.classList.remove("d-none");
+            
+            document.getElementById("AddressByPath").value = null;
+            document.getElementById("map").innerHTML = "";
+            //Load MapBox
+            PathMapBoxConfig();
+        }
+        else {
+            
+            locationContainer.style.display = "block";
+            btnAddLocation.style.display = null;
+            addressContainer.style.display = "none";
+            tutorialBtn.classList.add("d-none");
+            document.getElementById("ev").value = null;
+            document.getElementById("AddressByPath").value = null;
+            document.getElementById("map").innerHTML = "";
+
+            if (spanStreet && spanStreet.innerHTML != null) {
+                 spanStreet.style.display = "block";
+                btnAddLocation.innerHTML = strings.updateLocation;
+                mapBox.style.display = "block";
+                LocationMapWithPin();
+                
+            } else {
+                btnAddLocation.innerHTML = strings.insertLocation;
+                mapBox.style.display = "none";
+            }
+            
+        }
+        CheckLimitEnrollDate();
+    }
+
+    function AddLocation() {
+        let mapBox = document.getElementById("cardMapBox");
+        let addressContainer = document.getElementById("AddressContainer");
+        let locationContainer = document.getElementById("LocationContainer");
+        let tutorialBtn = document.getElementById("tutorialBtn");
+        let spanStreet = document.getElementById("spanStreet");
+        document.getElementById("map").innerHTML = "";
+        mapBox.style.display = "block";
+        addressContainer.style.display = "block";
+        locationContainer.style.display = "none";
+        document.getElementById("btnAddLocation").style.display = "none"
+        
+        tutorialBtn.classList.remove("d-none");
+        if(spanStreet){
+            spanStreet.style.display = "none";
+            document.getElementById("AddressByPath").value = spanStreet.innerHTML
+            }
+        SearchMapBoxConfig();
+    }
+
+
+        function CheckLimitEnrollDate() {
+        let startDateTime = document.getElementById("startDateTime");
+        let EnrollLimitDate = document.getElementById("EnrollLimitDate");
+        let spanLimiteEnrollError = document.getElementById("spanLimiteEnrollError");
+        let spanLimiteEnrollError2 = document.getElementById("spanLimiteEnrollError2");
+
+        let startDate = new Date(startDateTime.value);
+        let enrollDate = new Date(EnrollLimitDate.value);
+        let dateNow = new Date().toLocaleString();;
+
+
+        if (enrollDate > startDate) {
+            spanLimiteEnrollError.style.display = "block"
+            spanLimiteEnrollError2.style.display = "none"
+            EnrollLimitDate.value = new Date();
+        } else if (enrollDate < dateNow) {
+            spanLimiteEnrollError2.style.display = "block"
+            spanLimiteEnrollError.style.display = "none"
+            EnrollLimitDate.value = new Date();
+        }
+        else {
+            spanLimiteEnrollError.style.display = "none"
+            spanLimiteEnrollError2.style.display = "none"
+        }
+    }
+
+
+    function validateForm(event) {
+            // Verificar se pelo menos um dos campos está preenchido
+            const addressByPath = document.getElementById("AddressByPath").value;
+            const locationString = document.getElementById("Location").value;
+            let spanStreet = document.getElementById("spanStreet");
+        if (addressByPath.trim() === "" && locationString.trim() === "" && (!spanStreet || spanStreet.value.trim()=== "") ) {
+                event.preventDefault();
+                $(".toast").show();
+                document.getElementById('alertText').innerHTML = strings.locationEvent;
+                return false;
+        }
+            // Verificar se algum dos campos de tradução está preenchido
+            const translations = document.querySelectorAll('textarea[name^="EventTranslationsName"]');
+
+            let isTranslationFilled = false;
+            for (let i = 0; i < translations.length; i++) {
+                if (translations[i].value.trim() !== '') {
+                    isTranslationFilled = true;
+                    break;
+                }
+            }
+
+            // Se algum dos campos de tradução está preenchido, permite o envio do formulário
+            if (isTranslationFilled) {
+                return true;
+            }
+
+            // Caso contrário, impede o envio do formulário e exibe uma mensagem de erro
+            event.preventDefault();
+            $(".toast").show();
+            document.getElementById('alertText').innerHTML = strings.nameEvent;
+            return false;
+        }
+
+    var strings = {
+        "noMatch": '@Html.Raw(StringLocalizer["NoMatch"].Value.ToString())',
+        "noSegment": '@Html.Raw(StringLocalizer["NoSegment"].Value.ToString())',
+        "tooManyCoordinates": '@Html.Raw(StringLocalizer["TooManyCoordinates"].Value.ToString())',
+        "profileNotFound": '@Html.Raw(StringLocalizer["ProfileNotFound"].Value.ToString())',
+        "invalidInput": '@Html.Raw(StringLocalizer["InvalidInput"].Value.ToString())',
+        "other": '@Html.Raw(StringLocalizer["Other"].Value.ToString())',
+        "start": '@Html.Raw(StringLocalizer["Start"].Value.ToString())',
+        "end": '@Html.Raw(StringLocalizer["End"].Value.ToString())',
+        "altimetryChart": '@Html.Raw(StringLocalizer["AltimetryChart"].Value.ToString())',
+        "distance": '@Html.Raw(StringLocalizer["Distance"].Value.ToString())',
+        "altitude": '@Html.Raw(StringLocalizer["Altitude"].Value.ToString())',
+        "altimetry": '@Html.Raw(StringLocalizer["Altimetry"].Value.ToString())',
+        "searchError": '@Html.Raw(StringLocalizer["SearchError"].Value.ToString())',
+        "newAddress": '@Html.Raw(StringLocalizer["NewAddress"].Value.ToString())',
+        "resultError": '@Html.Raw(StringLocalizer["ResultError"].Value.ToString())',
+        "locationEvent": '@Html.Raw(StringLocalizer["LocationEvent"].Value.ToString())',
+        "updateLocation": '@Html.Raw(StringLocalizer["UpdateLocation"].Value.ToString())',
+        "insertLocation": '@Html.Raw(StringLocalizer["InsertLocation"].Value.ToString())',
+    }
+</script>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

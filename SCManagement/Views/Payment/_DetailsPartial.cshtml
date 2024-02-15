@@ -1,0 +1,160 @@
+﻿@model SCManagement.Services.PaymentService.Models.Payment
+@inject IStringLocalizer<SharedResource> StringLocalizer
+
+<style>
+    .cc-selector input {
+        margin: 0;
+        padding: 0;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+
+    .creditcard {
+        background-image: url(https://cdn.scmanagement.me/public/visamc_nobg.png);
+    }
+
+    .mbway {
+        background-image: url(https://cdn.scmanagement.me/public/mbway_nobg.png);
+    }
+
+    .reference {
+        background-image: url(https://cdn.scmanagement.me/public/mb_nobg.png);
+    }
+
+    .cc-selector input:active + .card-cc {
+        opacity: .9;
+    }
+
+    .cc-selector input:checked + .card-cc {
+        -webkit-filter: none;
+        -moz-filter: none;
+        filter: none;
+    }
+
+    .card-cc {
+        cursor: pointer;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        display: inline-block;
+        width: 100px;
+        height: 70px;
+        -webkit-transition: all 100ms ease-in;
+        -moz-transition: all 100ms ease-in;
+        transition: all 100ms ease-in;
+        -webkit-filter: brightness(1.8) grayscale(0.9) opacity(.7);
+        -moz-filter: brightness(1.8) grayscale(0.9) opacity(.7);
+        filter: brightness(1.8) grayscale(0.9) opacity(.7);
+    }
+
+        .card-cc:hover {
+            -webkit-filter: brightness(1.2) opacity(.9);
+            -moz-filter: brightness(1.2) opacity(.9);
+            filter: brightness(1.2) opacity(.9);
+        }
+
+    dt {
+        border: 1px solid gainsboro;
+        padding: 3px;
+    }
+
+    dd {
+        border: 1px solid gainsboro;
+        margin-bottom: 0;
+        padding: 3px;
+    }
+
+</style>
+
+<div>
+    <h4 class="text-to-dark">Payment</h4>
+    <hr />
+
+    <div style="color:red;" id="error"></div>
+
+    <dl class="row">
+        <dt class="col-sm-4 dlBg text-to-dark">@Html.DisplayNameFor(model => model.Product)</dt>
+        <dd class="col-sm-8 dlBg text-to-dark">@Model.Product.Name @(!string.IsNullOrEmpty(ViewBag.ClubName) ? $"({ViewBag.ClubName})" : "")</dd>
+
+        <dt class="col-sm-4 text-to-dark">@Html.DisplayNameFor(model => model.Value)</dt>
+        <dd class="col-sm-8 text-to-dark">@Html.DisplayFor(model => model.Value)€</dd>
+
+        <dt class="col-sm-4 dlBg text-to-dark">@Html.DisplayNameFor(model => model.PaymentMethod)</dt>
+        <dd class="col-sm-8 dlBg text-to-dark">@Html.DisplayFor(model => model.PaymentMethod)</dd>
+
+        <dt class="col-sm-4 text-to-dark">@Html.DisplayNameFor(model => model.PaymentStatus)</dt>
+        <dd class="col-sm-8 text-to-dark">@Html.DisplayFor(model => model.PaymentStatus)</dd>
+
+        <dt class="col-sm-4 dlBg text-to-dark">@Html.DisplayNameFor(model => model.CreatedAt)</dt>
+        <dd class="col-sm-8 dlBg text-to-dark">@Html.DisplayFor(model => model.CreatedAt)</dd>
+
+        <dt class="col-sm-4 text-to-dark">@Html.DisplayNameFor(model => model.PayedAt)</dt>
+        <dd class="col-sm-8 text-to-dark">@Html.DisplayFor(model => model.PayedAt)</dd>
+
+        @if (Model.PaymentMethod == SCManagement.Services.PaymentService.Models.PaymentMethod.Reference)
+        {
+            <dt class="col-sm-4 dlBg text-to-dark">@Html.DisplayNameFor(model => model.MbEntity)</dt>
+            <dd class="col-sm-8 dlBg text-to-dark">@Html.DisplayFor(model => model.MbEntity)</dd>
+
+            <dt class="col-sm-4 text-to-dark">@Html.DisplayNameFor(model => model.MbReference)</dt>
+            <dd class="col-sm-8 text-to-dark">@Html.DisplayFor(model => model.MbReference)</dd>
+        }
+        @if (Model.PaymentMethod == SCManagement.Services.PaymentService.Models.PaymentMethod.MbWay)
+        {
+            <dt class="col-sm-4 dlBg text-to-dark">@Html.DisplayNameFor(model => model.PhoneNumber)</dt>
+            <dd class="col-sm-8 dlBg text-to-dark">@Html.DisplayFor(model => model.PhoneNumber)</dd>
+        }
+        @if (Model.PaymentMethod == SCManagement.Services.PaymentService.Models.PaymentMethod.CreditCard)
+        {
+            @if (Model.PaymentStatus != SCManagement.Services.PaymentService.Models.PaymentStatus.Paid)
+            {
+                <dt class="col-sm-4 dlBg text-to-dark">@Html.DisplayNameFor(model => model.Url)</dt>
+                @if (ViewBag.AutoRenew == true)
+                {
+                    <dd class="col-sm-8 dlBg text-to-dark"><a href="/Subscription?subId=@Model.SubscriptionId">@StringLocalizer["Click To Pay"]</a></dd>
+                }
+                else
+                {
+                    <dd class="col-sm-8 dlBg text-to-dark"><a href="@Model.Url">@StringLocalizer["Click To Pay"]</a></dd>
+                }
+            }
+            else
+            {
+                <dt class="col-sm-4 text-to-dark">@Html.DisplayNameFor(model => model.CardInfo.LastFourDigits)</dt>
+                <dd class="col-sm-8 text-to-dark">@Html.DisplayFor(model => model.CardInfo.LastFourDigits)</dd>
+
+                <dt class="col-sm-4 dlBg text-to-dark">@Html.DisplayNameFor(model => model.CardInfo.Type)</dt>
+                <dd class="col-sm-8 dlBg text-to-dark">@Html.DisplayFor(model => model.CardInfo.Type)</dd>
+
+                <dt class="col-sm-4 text-to-dark">@Html.DisplayNameFor(model => model.CardInfo.ExpirationDate)</dt>
+                <dd class="col-sm-8 text-to-dark">@Html.DisplayFor(model => model.CardInfo.ExpirationDate)</dd>
+            }
+        }
+    </dl>
+    <div class="mt-3">
+        @if (Model.PaymentStatus == SCManagement.Services.PaymentService.Models.PaymentStatus.Processing)
+        {
+            @if (Model.PaymentMethod == SCManagement.Services.PaymentService.Models.PaymentMethod.CreditCard)
+            {
+                <p>@StringLocalizer["PaymentProcessingCard"]</p>
+            }
+            else
+            {
+                <p>@StringLocalizer["PaymentProcessing"]</p>
+            }
+        }
+        else if (Model.PaymentStatus != SCManagement.Services.PaymentService.Models.PaymentStatus.Paid && Model.PaymentStatus != SCManagement.Services.PaymentService.Models.PaymentStatus.Canceled)
+        {
+            @await Html.PartialAsync("_PaymentPartial", new SCManagement.Services.PaymentService.Models.PayPayment {Id = Model.Id})
+        }
+    </div>
+    @if (Model.SubscriptionId != null)
+    {
+        <div class="mb-3 mt-4">
+            <a href="/Subscription?subId=@Model.SubscriptionId" style="color:white; text-decoration:none; border-radius: 10px; padding:10px; background-color: #00639A; border-color: #00639A;" asp->Go to subscription</a>
+        </div>
+    }
+</div>
+
+<script src="~/js/site.js" asp-append-version="true"></script>

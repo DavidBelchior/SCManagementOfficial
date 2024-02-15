@@ -1,0 +1,224 @@
+﻿@page
+@using SCManagement;
+@model IndexModel
+@inject IStringLocalizer<SharedResource> StringLocalizer
+
+@{
+    ViewData["Title"] = "Profile";
+    
+}
+
+<div id="modal1" class="modal">
+    <div class="modal-content" style="margin-top:20%; margin-bottom:0; max-height:20%; max-width:20%">
+        <span class="text-to-dark">@StringLocalizer["Are u sure you want to delete?"]</span>
+        <div class="d-flex justify-content-end mt-3">
+            <button onclick="$('#modal1').hide()" style="color:white; border-radius: 10px; background-color: #00639A; border-color: #00639A; margin-right:3%;">@StringLocalizer["Cancel"]</button>
+            <button onclick="removeFile('image')" style="color:white; border-radius: 10px; background-color: red; border-color: red;">@StringLocalizer["Remove"]</button>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid row justify-content-evenly">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div id="card1" class="col-md-3 col-8 card-to-dark card-style card mt-5">
+        <div class="card-body pt-5 p-3 align-content-center justify-content-center" style="max-height: 500px;">
+            <div style="text-align:center;">
+                <img id="profilePicture"
+                     src="@Model.ProfilePictureUrl"
+                     class="rounded-circle col"
+                     style="max-width:100%; max-height:300px; object-fit:cover; aspect-ratio:1;" />
+                <div class="col">
+                    <i id="btnRemoveImage" class="fa-solid fa-xl fa-trash row @(!Model.ProfilePictureUrl.Contains("public") ? "" : "invisible")" style="color:red; cursor:pointer; margin-right:20px; margin-top:10%;" onclick="toggleRemoveModal()" title=@StringLocalizer["RemovePhoto"]></i>
+                    <i class="fa-solid fa-xl fa-pen-to-square row text-to-dark" onclick="document.getElementById('selectedFile').click()" style="cursor:pointer;" title=@StringLocalizer["ChangePhoto"]></i>
+                </div>
+                
+            </div>
+            <h3 class="text-to-dark text-center" style="margin-top:50px;">@Model.Input.FirstName @Model.Input.LastName</h3>
+        </div>
+    </div>
+
+    <div id="card2" class="col-8 card-to-dark card-style card mt-5">
+        <div class="card-body justify-content-between align-content-between ">
+            <partial name="_StatusMessage" for="StatusMessage" />
+            <form id="profile-form" method="post" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col form-floating" style="margin-bottom:20px; padding:0; margin-right:3px;">
+                        <input asp-for="Input.FirstName" class="form-control" />
+                        <label asp-for="Input.FirstName" class="form-label"></label>
+                        <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col form-floating" style="margin-bottom:20px; padding:0;">
+                        <input asp-for="Input.LastName" class="form-control" />
+                        <label asp-for="Input.LastName" class="form-label"></label>
+                        <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                    </div>
+                </div>
+                <hr style="margin-bottom:20px;" />
+                <div class="row form-floating" style="margin-bottom:20px;">
+                    <input asp-for="Input.PhoneNumber" class="form-control" />
+                    <label asp-for="Input.PhoneNumber" class="form-label"></label>
+                    <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                </div>
+                <hr style="margin-bottom:20px;" />
+                <div class="row form-floating" style="margin-bottom:20px;">
+                    <input asp-for="Input.DateOfBirth" class="form-control" />
+                    <label asp-for="Input.DateOfBirth" class="form-label"></label>
+                    <span asp-validation-for="Input.DateOfBirth" class="text-danger"></span>
+                </div>
+                <hr style="margin-bottom:20px;" />
+                <div class="row">
+                    <strong class="col text-to-dark">@StringLocalizer["Password"]</strong>
+                    <a class="col text-end text-to-dark" style="color:black;" asp-page="/Account/Manage/ChangePassword">@StringLocalizer["Change Password"]</a>
+                </div>
+                <hr style="margin-bottom:20px;" />
+                <div class="row">
+                    <strong class="col text-to-dark">Email</strong>
+                    <div class="col text-end">
+                        <label class="text-to-dark" style="margin-right:20px;">@User.Identity?.Name</label>
+                        <a class="text-to-dark" style="color:black;" asp-page="/Account/Manage/Email">@StringLocalizer["Change Email"]</a>
+                    </div>
+                </div>
+                <hr style="margin-bottom:20px;" />
+                            
+                
+
+                <button id="update-profile-button" style="border-radius: 10px;
+                                                        background-color: #00639A;
+                                                        border-color: #00639A;
+                                                        margin-top:50px !important;"
+                        type="submit" class="w-100 btn btn-lg btn-primary">
+                    @StringLocalizer["Save"]
+                </button>
+
+                <div>
+                    <input id="selectedFile" asp-for="Input.File" type="file" class="form-control d-none" accept="image/*"
+                           onchange="handleUpload(this, 'image')" />
+                    <input id="removeImage" asp-for="Input.RemoveImage" type="hidden" />
+                </div>
+            </form>
+        </div>
+    </div>
+    
+</div>
+<div class="toast align-items-center" aria-live="assertive" aria-atomic="true" style="position:absolute; top:10%; border: 2px solid red; border-right: 8px solid red; border-left:none; left:-2px;">
+    <div class="d-flex">
+        <div class="toast-body">
+            <strong id="alertText"></strong>
+        </div>
+        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" onclick="closeToast()" aria-label="Close"></button>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript">
+
+        const removePend = '@Html.Raw(StringLocalizer["Pending_Remove"].Value.ToString())'
+        const savePend = '@Html.Raw(StringLocalizer["Pending_Save"].Value.ToString())'
+        const only = '@Html.Raw(StringLocalizer["Only"].Value.ToString())'
+        const allow = '@Html.Raw(StringLocalizer["Files_Allow"].Value.ToString())'
+        const modal = document.getElementById("modal")
+        const placeholder = "https://cdn.scmanagement.me/public/user_placeholder.png"
+
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                $("#modal").hide();
+            }
+        }
+
+        function closeToast() {
+            $(".toast").hide();
+        }
+
+
+        function toggleModal(){
+            $("#modal").show();
+        }
+
+        function toggleRemoveModal() {
+            $("#modal1").show();
+        }
+
+        function removeFile(fileType) {
+            let fileElement = document.getElementById(`selectedFile${fileType === 'image' ? '' : 'ForEMD'}`)
+            let removeButton = document.getElementById(`btnRemove${fileType === 'image' ? 'Image' : 'EMD'}`)
+
+            if (fileType === 'pdf') {
+                document.getElementById('emd').className = "fa-solid fa-file fa-xl text-to-dark invisible"
+                document.getElementById('emdText').textContent = removePend
+                $("#modal").hide();
+            }
+            else{
+                document.getElementById('profilePicture').src = placeholder
+            }
+            fileElement.value = ""
+            removeButton.classList.add("invisible")
+            document.getElementById(`remove${fileType === 'image' ? 'Image' : 'EMD'}`).value = true
+            $('#modal1').hide()
+        }
+
+        function handleUpload(event, fileType) {
+            let allowedTypes = fileType === 'image' ? ['jpg', 'jpeg', 'png'] : ['pdf']
+            let selectedFile = document.getElementById(`selectedFile${fileType === 'image' ? '' : 'ForEMD'}`).value
+            let idxDot = selectedFile.lastIndexOf(".") + 1
+            let extFile = selectedFile.substr(idxDot, selectedFile.length).toLowerCase()
+
+            if (allowedTypes.includes(extFile)) {
+                if (fileType === 'pdf') {
+                    document.getElementById('emdText').textContent = savePend
+                    document.getElementById('emd').className = "fa-solid fa-file fa-xl text-to-dark"
+                }
+                document.getElementById(fileType === 'image' ? 'profilePicture' : 'frame').src = window.URL.createObjectURL(event.files[0])
+                document.getElementById(`btnRemove${fileType === 'image' ? 'Image' : 'EMD'}`).classList.remove("invisible")
+            } else {
+                document.getElementById(`selectedFile${fileType === 'image' ? '' : 'ForEMD'}`).value = null
+                $(".toast").show();
+                document.getElementById('alertText').innerHTML = "only" + ' ' + `${allowedTypes.join('/')}` + ' ' + "allowed";
+            }
+        }
+    </script>
+}
+
+<style>
+    .frame{
+        height: 90%;
+        width: 90%;
+    }
+    
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    /* Modal Content/Box */
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto; /* 15% from the top and centered */
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%; /* Could be more or less, depending on screen size */
+    }
+
+    /* The Close Button */
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+</style>

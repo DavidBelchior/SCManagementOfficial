@@ -1,0 +1,139 @@
+﻿@inject IStringLocalizer<SharedResource> StringLocalizer
+
+@{
+    ViewData["Title"] = @StringLocalizer["About Us"];
+}
+
+<h1 class="text-center pt-4 text-to-dark">@StringLocalizer["About Us"]</h1>
+
+<div class="container mt-4 body">
+    <div class="card ps-2 pe-md-2 ">
+        <div class="card-body">
+            <p class="text-to-dark" style="text-align:justify">
+                @StringLocalizer["AboutText"]
+            </p>
+        </div>
+    </div>
+
+    <div class="pt-4">
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            <div class="col d-flex justify-content-center align-items-center">
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="~/img/David.jpg" style="height:100%; width:100%; object-fit:cover; border-radius:20px;" class="card-img-top"
+                                 alt="David Belchior" />
+                        </div>
+                        <div class="flip-card-back d-flex justify-content-center align-items-center p-4">
+                            @StringLocalizer["DavidAbout"]
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col d-flex justify-content-center align-items-center">
+                <div class="h-100 flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="~/img/Guilherme.png" style="height:100%; width:100%; object-fit:cover; border-radius:20px;" class="card-img-top"
+                                 alt="Guilherme Oliveira" />
+                        </div>
+                        <div class="flip-card-back d-flex justify-content-center align-items-center p-4">
+                            @StringLocalizer["OliveiraAbout"]
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col d-flex justify-content-center align-items-center">
+                <div class="h-100 flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="~/img/Peralta.jpeg" style="height:100%; width:100%; object-fit:cover; border-radius:20px;" class="card-img-top"
+                                 alt="Pedro Peralta" />
+                        </div>
+                        <div class="flip-card-back d-flex justify-content-center align-items-center p-4">
+                            @StringLocalizer["PeraltaAbout"]
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col d-flex justify-content-center align-items-center">
+                <div class="h-100 flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="~/img/Andre.jpg" style="height:100%; width:100%; object-fit:cover; border-radius:20px;" class="card-img-top"
+                                 alt="André Matias" />
+                        </div>
+                        <div class="flip-card-back d-flex justify-content-center align-items-center p-4">
+                            @StringLocalizer["MatiasAbout"]
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col d-flex justify-content-center align-items-center">
+                <div class="h-100 flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="/img/Dinis.jpg" style="height:100%; width:100%; object-fit:cover; border-radius:20px;" class="card-img-top"
+                                 alt="Dinis Pimpão" />
+                        </div>
+                        <div class="flip-card-back d-flex justify-content-center align-items-center p-4">
+                            @StringLocalizer["DinisAbout"]
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .flip-card {
+        background-color: transparent;
+        width: 300px !important;
+        height: 420px !important;
+        perspective: 1000px;
+        border-radius: 20px;
+    }
+
+    .flip-card-inner {
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.8s;
+        transform-style: preserve-3d;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        border-radius: 20px;
+    }
+
+    .flip-card:hover .flip-card-inner {
+        transform: rotateY(-180deg);
+    }
+
+    .flip-card-front, .flip-card-back {
+        width: 100%;
+        height: 100%;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        border-radius: 20px;
+    }
+
+    .flip-card-front {
+        background-color: #bbb;
+        color: black;
+    }
+
+    .flip-card-back {
+        position: absolute;
+        background-color: #3d4245;
+        color: white;
+        transform: rotateY(180deg);
+        border-radius: 20px;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        text-align: justify;
+    }
+
+</style>

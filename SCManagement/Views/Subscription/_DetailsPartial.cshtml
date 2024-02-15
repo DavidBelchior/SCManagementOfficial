@@ -1,0 +1,182 @@
+﻿@model SCManagement.Services.PaymentService.Models.Subscription
+@inject IHtmlLocalizer<SharedResource> HtmlLocalizer
+@inject IStringLocalizer<SharedResource> StringLocalizer
+
+<style>
+    dt {
+        border: 1px solid gainsboro;
+        padding: 3px;
+    }
+
+    dd {
+        border: 1px solid gainsboro;
+        margin-bottom: 0;
+        padding: 3px;
+    }
+
+</style>
+<div>
+    <h4 class="text-to-dark">@StringLocalizer["Subscription"]</h4>
+    <hr />
+
+    <div style="color:red;" id="inner-error"></div>
+
+    <dl class="row">
+        <dt class="col-sm-4 dlBg text-to-dark">
+            @Html.DisplayNameFor(model => model.StartTime)
+        </dt>
+        <dd class="col-sm-8 dlBg text-to-dark">
+            @Html.DisplayFor(model => model.StartTime)
+        </dd>
+        <dt class="col-sm-4 text-to-dark">
+            @Html.DisplayNameFor(model => model.NextTime)
+        </dt>
+        <dd class="col-sm-8 text-to-dark">
+            @Html.DisplayFor(model => model.NextTime)
+        </dd>
+        <dt class="col-sm-4 dlBg text-to-dark">
+            @Html.DisplayNameFor(model => model.EndTime)
+        </dt>
+        <dd class="col-sm-8 dlBg text-to-dark">
+            @Html.DisplayFor(model => model.EndTime)
+        </dd>
+        <dt class="col-sm-4 text-to-dark">
+            @Html.DisplayNameFor(model => model.Value)
+        </dt>
+        <dd class="col-sm-8 text-to-dark">
+            @Html.DisplayFor(model => model.Value)€
+        </dd>
+        <dt class="col-sm-4 dlBg text-to-dark">
+            @Html.DisplayNameFor(model => model.Status)
+        </dt>
+        <dd class="col-sm-8 dlBg text-to-dark">
+            @Html.DisplayFor(model => model.Status)
+        </dd>
+        <dt class="col-sm-4 text-to-dark">
+            @Html.DisplayNameFor(model => model.Product)
+        </dt>
+        <dd class="col-sm-8 text-to-dark">
+            @Html.DisplayFor(model => model.Product.Name)
+        </dd>
+        <dt class="col-sm-4 dlBg text-to-dark">
+            @Html.DisplayNameFor(model => model.AutoRenew)
+        </dt>
+        <dd class="col-sm-8 dlBg text-to-dark">
+            @Html.DisplayFor(model => model.AutoRenew)
+        </dd>
+        <dt class="col-sm-4 text-to-dark">
+            @Html.DisplayNameFor(model => model.Frequency)
+        </dt>
+        <dd class="col-sm-8 text-to-dark">
+            @Html.DisplayFor(model => model.Frequency)
+        </dd>
+        @if (Model.ClubId != null)
+        {
+            <dt class="col-sm-4 dlBg text-to-dark">
+                @Html.DisplayNameFor(model => model.Club.Name)
+            </dt>
+            <dd class="col-sm-8 dlBg text-to-dark">
+                @Html.DisplayFor(model => model.Club.Name)
+            </dd>
+        }
+        @if (Model.Product?.AthleteSlots != null)
+        {
+            <dt class="col-sm-4 text-to-dark">
+                @Html.DisplayNameFor(model => model.Product.AthleteSlots)
+            </dt>
+            <dd class="col-sm-8 text-to-dark">
+                @Html.DisplayFor(model => model.Product.AthleteSlots)
+            </dd>
+        }
+        @if (Model.CardInfo != null)
+        {
+            <dt class="col-sm-4 dlBg text-to-dark">
+                @Html.DisplayNameFor(model => model.CardInfo.LastFourDigits)
+            </dt>
+            <dd class="col-sm-8 dlBg text-to-dark">
+                @Html.DisplayFor(model => model.CardInfo.LastFourDigits)
+            </dd>
+            <dt class="col-sm-4 text-to-dark">
+                @Html.DisplayNameFor(model => model.CardInfo.Type)
+            </dt>
+            <dd class="col-sm-8 text-to-dark">
+                @Html.DisplayFor(model => model.CardInfo.Type)
+            </dd>
+            <dt class="col-sm-4 dlBg text-to-dark">
+                @Html.DisplayNameFor(model => model.CardInfo.ExpirationDate)
+            </dt>
+            <dd class="col-sm-8 dlBg text-to-dark">
+                @Html.DisplayFor(model => model.CardInfo.ExpirationDate)
+            </dd>
+        }
+
+        @if (Model.AutoRenew && Model.Status == SCManagement.Services.PaymentService.Models.SubscriptionStatus.Waiting)
+        {
+            <dt class="col-sm-4 text-to-dark">
+                @Html.DisplayNameFor(model => model.ConfigUrl)
+            </dt>
+            <dd class="col-sm-8 text-to-dark">
+                <a href="@Model.ConfigUrl">@Model.ConfigUrl</a>
+            </dd>
+        }
+    </dl>
+    @if (!Model.AutoRenew &&
+    Model.Status != SCManagement.Services.PaymentService.Models.SubscriptionStatus.Pending_Cancel &&
+    Model.Status != SCManagement.Services.PaymentService.Models.SubscriptionStatus.Canceled
+    )
+    {
+        <div class="mb-3 text-to-dark">
+            @StringLocalizer["PaymentsSubscriptionText"] <a asp-action="Index" asp-controller="Payment"> @StringLocalizer["PaymentsPageText"]</a>
+            @StringLocalizer["ToPayManuallyText"]
+        </div>
+    }
+
+</div>
+<div class="d-block d-md-flex">
+    @if (Model.Status != SCManagement.Services.PaymentService.Models.SubscriptionStatus.Pending_Cancel &&
+    Model.Status != SCManagement.Services.PaymentService.Models.SubscriptionStatus.Canceled)
+    {
+        @if (Model.Product.ProductType == SCManagement.Services.PaymentService.Models.ProductType.ClubSubscription)
+        {
+            <button style=" margin-right: 10px; color:white; padding:5px 15px 5px 15px; border-radius: 10px; background-color: #00639A; border-color: #00639A;" 
+                    onclick="updatePlanPick(@Model.Id)"
+                    class="col-12 col-md-auto">@StringLocalizer["UpdatePlan"]</button>
+        }
+
+        <form asp-action="UpdateAutoRenew">
+            <input name="Id" value="@Model.Id" class="form-control" hidden />
+            <input type="submit"
+                   value='@(Model.AutoRenew ? StringLocalizer["Disable AutoRenew"] : StringLocalizer["Enable AutoRenew"])'
+                   class="btn col-12 col-md-auto mt-2 mt-md-0"
+                   style="margin-right: 10px; color:white; padding:5px 15px 5px 15px; border-radius: 10px; background-color: #00639A; border-color: #00639A;"
+                   onclick="return confirm('@HtmlLocalizer[Model.AutoRenew ? "SubscriptionAutoCancelConfirm" : "SubscriptionAutoEnabledConfirm"]')" />
+        </form>
+
+        <form asp-action="Cancel">
+            <input name="Id" value="@Model.Id" class="form-control" hidden />
+            <input type="submit"
+                   value='@StringLocalizer["Cancel"]'
+                   class="btn col-12 col-md-auto mt-2 mt-md-0"
+                   style="margin-right: 10px; color:white; border-radius: 10px; padding: 5px 15px 5px 15px; background-color: red; border-color: black;"
+                   onclick="return confirm('@HtmlLocalizer["SubscriptionCancelConfirm"]')" />
+        </form>
+    }
+</div>
+
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script>
+    function updatePlanPick(id) {
+        $.ajax({
+            url: `/Subscription/PlansPartial/${id}`,
+            type: 'GET',
+            async: false,
+            success: function (result) {
+                $("#modal-inner-content").html(result);
+                document.getElementsByClassName("modal-content")[0].classList.remove("w-50");
+                document.getElementsByClassName("modal-content")[0].classList.add("w-25");
+                $(".modal-content");
+                $("#modal").show();
+            }
+        });
+    }
+</script>

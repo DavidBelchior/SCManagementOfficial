@@ -1,0 +1,166 @@
+﻿@model IEnumerable<SCManagement.Models.CodeClub>
+@inject IStringLocalizer<SharedResource> StringLocalizer
+
+@{
+    ViewData["Title"] = @StringLocalizer["CodesList"];
+}
+<link rel="stylesheet" href="~/lib/DataTables/DataTables-1.13.3/css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="~/lib/DataTables/Responsive-2.4.0/css/responsive.bootstrap.css">
+
+<style>
+    @@media only screen and (max-width: 768px){
+        .modal-content{
+            max-width:98% !important;
+        }
+    }
+</style>
+
+<div class="container-fluid ps-5 pe-5">
+    <div id="modal" class="modal">
+        <div class="modal-content" style="margin-top:7%; margin-bottom:0; max-width:50%;">
+            <span onclick="$('#modal').hide()" class="close">&times;</span>
+            <div id="modal-inner-content" class="w-auto">
+                @if (ViewBag.Code != null)
+                {
+                    @await Html.PartialAsync("_PartialShowCode", (CodeClub)ViewBag.Code)
+                }
+                @if (ViewBag.ApprovedCodeStatus != null)
+                {
+                    @await Html.PartialAsync("_PartialShowCode", Model.First(f=>f.Code == ViewBag.ApprovedCode))
+                }
+            </div>
+        </div>
+    </div>
+    <h1 style="margin-top:130px !important;" class="text-to-dark">@StringLocalizer["Codes"]</h1>
+    <p>
+        <button style="color:white; border-radius: 10px; background-color: #00639A; border-color: #00639A;" onclick="openCreate()">@StringLocalizer["Create New"]</button>
+    </p>
+    <div class="mt-5" style="font-size: 1.5rem;">@ViewBag.Slots @StringLocalizer["SlotsStats"]</div>
+    <div class="card mt-1 shadow" style="min-height:650px !important; height:fit-content !important;  border-radius:20px;">
+        <div class="card-body">
+            <table id="table_id" class="display" style="width:100%!important;">
+                <thead>
+                    <tr>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.Code)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.CreationDate)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.ExpireDate)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.UsedDate)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.Approved)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.Role)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.CreatedByUser)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.UsedByUser)
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.Code)
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.CreationDate)
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.ExpireDate)
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.UsedDate)
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.Approved)
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.Role.RoleName)
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.CreatedByUser.FullName)
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.UsedByUser.FullName)
+                            </td>
+                            <td>
+                                <a href="/MyClub/Codes?code=@item.Id" style="cursor:pointer; color: #00639A;text-decoration: underline; float:left;">@StringLocalizer["Details"]</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script type="text/javascript" charset="utf8" src="/lib/jquery/dist/jquery.js"></script>
+<script type="text/javascript" charset="utf8" src="/lib/DataTables/DataTables-1.13.3/js/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf8" src="/lib/DataTables/Responsive-2.4.0/js/dataTables.responsive.js"></script>
+<script type="text/javascript" charset="utf8" src="/lib/DataTables/datatables.min.js"></script>
+<script type="text/javascript">
+    let modal = document.getElementById("modal");
+
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            $("#modal").hide();
+        }
+    }
+
+    $(document).ready(function () {
+        $.noConflict();
+        $("#table_id").DataTable({
+            responsive: true,
+            rowReorder: {
+                selector: 'td:nth-child(2)'
+            },
+            order: [[1, 'desc']],
+            columnDefs: [
+                { orderable: false, targets: [-1] }
+            ],
+            language: {
+                "lengthMenu": "@StringLocalizer["Show"] _MENU_ @StringLocalizer["EntriesDatatable"]",
+                "emptyTable": "@StringLocalizer["EmptyMessage"]",
+                "search": "@StringLocalizer["Search"]",
+                "zeroRecords": "@StringLocalizer["NoMatching"]",
+                "processing": "@StringLocalizer["Processing"]",
+                "infoFiltered": "(@StringLocalizer["Filtered"] @StringLocalizer["From"] _MAX_ total @StringLocalizer["EntriesDatatable"])",
+                "info": "@StringLocalizer["Showing"] _START_ @StringLocalizer["To"] _END_ @StringLocalizer["OfDatatable"] _TOTAL_ @StringLocalizer["EntriesDatatable"]",
+                "infoEmpty": "@StringLocalizer["Showing"] 0 @StringLocalizer["OfDatatable"] 0 @StringLocalizer["EntriesDatatable"]",
+                "paginate": {
+                    first: "@StringLocalizer["First"]",
+                    last: "@StringLocalizer["Last"]",
+                    next: "@StringLocalizer["Next"]",
+                    previous: "@StringLocalizer["Previous"]",
+                },
+            },
+        });
+        setTheme(localStorage.getItem("theme") || "light")
+    });
+
+    function openCreate() {
+        $.ajax({
+            url: '/MyClub/CreateCode',
+            type: 'GET',
+            async: false,
+            success: function (result) {
+                $("#modal-inner-content").html(result);
+                $("#modal").show();
+            }
+        });
+    }
+</script>

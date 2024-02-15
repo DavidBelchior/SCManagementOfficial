@@ -1,0 +1,114 @@
+﻿@model IEnumerable<SCManagement.Models.UsersRoleClub>
+@inject IStringLocalizer<SharedResource> StringLocalizer
+
+@{
+    ViewData["Title"] = @StringLocalizer["AthletesList"];
+}
+<link rel="stylesheet" href="~/lib/DataTables/DataTables-1.13.3/css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="~/lib/DataTables/Responsive-2.4.0/css/responsive.bootstrap.css">
+
+<div class="container-fluid ps-5 pe-5">
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span onclick="$('#modal').hide()" class="close">&times;</span>
+            <div id="modal-inner-content">
+            </div>
+        </div>
+    </div>
+    <h1 style="margin-top:130px !important;" class="text-to-dark">@StringLocalizer["Athletes"]</h1>
+    <div class="card mt-5 shadow" style="min-height:650px !important; height:fit-content !important;  border-radius:20px;">
+        <div class="card-body">
+            <table id="table_id" class="display" style="width:100%!important;">
+                <thead>
+                    <tr>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.User)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.User.DateOfBirth)
+                        </th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.User.FullName)
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.User.DateOfBirth)
+                            </td>
+                            <td>
+                                <strong onclick="openDetails('@item.UserId')" style="cursor:pointer; color: #00639A;text-decoration: underline; float:left;">
+                                    @StringLocalizer["Details"]
+                                </strong>
+                            </td>
+                            <td>
+                                <div class="justify-content-end d-flex">
+                                    <form asp-action="RemoveUser" class="@(ViewBag.UserIsManager ? "": "invisible")">
+                                        <input name="usersRoleClubId" value="@item.Id" class="form-control" hidden />
+                                        <input name="page" value="AthletesList" class="form-control" hidden />
+                                        <input type="submit" value=@StringLocalizer["RemoveAthlete"] style="border-radius: 10px; background-color: red; border-color: black;" class="btn btn-primary" />
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script type="text/javascript" charset="utf8" src="/lib/jquery/dist/jquery.js"></script>
+<script type="text/javascript" charset="utf8" src="/lib/DataTables/DataTables-1.13.3/js/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf8" src="/lib/DataTables/Responsive-2.4.0/js/dataTables.responsive.js"></script>
+<script type="text/javascript" charset="utf8" src="/lib/DataTables/datatables.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $.noConflict();
+        $("#table_id").DataTable({
+            responsive: true,
+            columnDefs: [
+                { orderable: false, targets: [-1, -2] }
+            ],
+            language: {
+                "lengthMenu": "@StringLocalizer["Show"] _MENU_ @StringLocalizer["EntriesDatatable"]",
+                "emptyTable": "@StringLocalizer["EmptyMessage"]",
+                "search": "@StringLocalizer["Search"]",
+                "zeroRecords": "@StringLocalizer["NoMatching"]",
+                "processing": "@StringLocalizer["Processing"]",
+                "infoFiltered": "(@StringLocalizer["Filtered"] @StringLocalizer["From"] _MAX_ total @StringLocalizer["EntriesDatatable"])",
+                "info": "@StringLocalizer["Showing"] _START_ @StringLocalizer["To"] _END_ @StringLocalizer["OfDatatable"] _TOTAL_ @StringLocalizer["EntriesDatatable"]",
+                "infoEmpty": "@StringLocalizer["Showing"] 0 @StringLocalizer["OfDatatable"] 0 @StringLocalizer["EntriesDatatable"]",
+                "paginate": {
+                    first: "@StringLocalizer["First"]",
+                    last: "@StringLocalizer["Last"]",
+                    next: "@StringLocalizer["Next"]",
+                    previous: "@StringLocalizer["Previous"]",
+                },
+            },
+        });
+        setTheme(localStorage.getItem("theme") || "light")
+    });
+    let modal = document.getElementById("modal")
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            $("#modal").hide();
+        }
+    }
+    function openDetails(id) {
+        $.ajax({
+            url: `/MyClub/UserDetails/${id}`,
+            type: 'GET',
+            async: false,
+            success: function (result) {
+                $("#modal-inner-content").html(result);
+                $("#modal").show();
+            }
+        });
+    }
+</script>

@@ -1,0 +1,171 @@
+﻿@model IEnumerable<SCManagement.Services.PaymentService.Models.Subscription>
+@inject IStringLocalizer<SharedResource> StringLocalizer
+@{
+    ViewData["Title"] = @StringLocalizer["Subscriptions"];
+}
+
+<style>
+    .modal-content{
+        width: 50%;
+    }
+    @@media only screen and (max-width: 768px) {
+        .modal-content {
+            width: 90%;
+        }
+    }
+</style>
+
+<div id="modal" class="modal">
+    <div class="modal-content" style="margin-top:7%; margin-bottom:0;">
+        <span onclick="closeModal()" class="close">&times;</span>
+        <div id="modal-inner-content"></div>
+    </div>
+</div>
+
+<div class="container-fluid ps-5 pe-5">
+    <h1 style="margin-top:130px !important;" class="text-to-dark">@StringLocalizer["Subscriptions"]</h1>
+    <div class="card mt-5 shadow" style="height:650px !important; border-radius:20px;">
+        <div class="card-body">
+            @if (ViewBag.Error != null)
+            {
+                <p style="color: red;">@StringLocalizer[ViewBag.Error]</p>
+            }
+            else if (ViewBag.Message != null)
+            {
+                <p style="color: green;">@StringLocalizer[ViewBag.Message]</p>
+            }
+            <table id="table_id" class="display" style="width:100%!important;">
+                <thead>
+                    <tr>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.StartTime)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.NextTime)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.EndTime)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.Value)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.Status)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.Product)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.AutoRenew)
+                        </th>
+                        <th class="text-to-dark">
+                            @Html.DisplayNameFor(model => model.Frequency)
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr onclick="openDetails(@item.Id)" style="cursor:pointer">
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.StartTime)
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.NextTime)
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.EndTime)
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.Value)€
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.Status)
+                            </td>
+                            <td class="text-to-dark">
+                                @if (item.Product.ProductType == SCManagement.Services.PaymentService.Models.ProductType.ClubSubscription)
+                                {
+                                    <span>@item.Product.Name (@item.Club.Name)</span>
+                                }
+                                else
+                                {
+                                    <span>@item.Product.Name</span>
+                                }
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.AutoRenew)
+                            </td>
+                            <td class="text-to-dark">
+                                @Html.DisplayFor(modelItem => item.Frequency)
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script type="text/javascript" charset="utf8" src="/lib/jquery/dist/jquery.js"></script>
+<script type="text/javascript" charset="utf8" src="/lib/DataTables/DataTables-1.13.3/js/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf8" src="/lib/DataTables/Responsive-2.4.0/js/dataTables.responsive.js"></script>
+<script type="text/javascript" charset="utf8" src="/lib/DataTables/datatables.min.js"></script>
+<script type="text/javascript">
+    window.onload = () => {
+        const id = "@ViewBag.SubId";
+        if (id != "") openDetails(id)
+    }
+
+    $(document).ready(function () {
+        $.noConflict();
+        $("#table_id").DataTable({
+            responsive: true,
+            language: {
+                "lengthMenu": "@StringLocalizer["Show"] _MENU_ @StringLocalizer["EntriesDatatable"]",
+                "emptyTable": "@StringLocalizer["EmptyMessage"]",
+                "search": "@StringLocalizer["Search"]",
+                "zeroRecords": "@StringLocalizer["NoMatching"]",
+                "processing": "@StringLocalizer["Processing"]",
+                "infoFiltered": "(@StringLocalizer["Filtered"] @StringLocalizer["From"] _MAX_ total @StringLocalizer["EntriesDatatable"])",
+                "info": "@StringLocalizer["Showing"] _START_ @StringLocalizer["To"] _END_ @StringLocalizer["OfDatatable"] _TOTAL_ @StringLocalizer["EntriesDatatable"]",
+                "infoEmpty": "@StringLocalizer["Showing"] 0 @StringLocalizer["OfDatatable"] 0 @StringLocalizer["EntriesDatatable"]",
+                "paginate": {
+                    first: "@StringLocalizer["First"]",
+                    last: "@StringLocalizer["Last"]",
+                    next: "@StringLocalizer["Next"]",
+                    previous: "@StringLocalizer["Previous"]",
+                },
+            },
+        });
+        setTheme(localStorage.getItem("theme") || "light")
+    });
+
+    const closeModal = () => {
+        $("#modal").hide();
+        const url = new URL(window.location);
+        url.search = '';
+        window.history.pushState(null, '', url.toString());
+    }
+
+    let modal = document.getElementById("modal");
+
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+
+    function openDetails(id) {
+        $.ajax({
+            url: `/Subscription/Details/${id}`,
+            type: 'GET',
+            async: false,
+            success: function (result) {
+                $("#modal-inner-content").html(result);
+                $("#modal").show();
+                $("#inner-error").text("@ViewBag.InnerError");
+            }
+        });
+    }
+</script>

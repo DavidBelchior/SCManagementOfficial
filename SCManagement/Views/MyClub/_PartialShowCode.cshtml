@@ -1,0 +1,120 @@
+﻿@model SCManagement.Models.CodeClub
+@inject IStringLocalizer<SharedResource> stringLocalizer
+
+<style>
+    dt {
+        border: 1px solid gainsboro;
+        padding: 3px;
+    }
+
+    dd {
+        border: 1px solid gainsboro;
+        margin-bottom: 0;
+        padding: 3px;
+    }
+
+</style>
+
+<div>
+    <h4 class="text-to-dark">CodeClub</h4>
+    <hr />
+
+    @if (ViewBag.ApprovedCodeStatus == true)
+    {
+        <p class="text-to-dark">@stringLocalizer["codeapproved"]</p>
+    }
+    else if (ViewBag.ApprovedCodeStatus == false)
+    {
+        <p class="text-to-dark">@stringLocalizer["Error approving code"]</p>
+    }
+    <div class="row">
+        <dl class="row ms-1">
+            <dt class="col-sm-4 dlBg text-to-dark">
+                @Html.DisplayNameFor(model => model.Code)
+            </dt>
+            <dd class="col-sm-8 dlBg text-to-dark">
+                @Html.DisplayFor(model => model.Code)
+            </dd>
+            <dt class="col-sm-4 text-to-dark">
+                @Html.DisplayNameFor(model => model.CreationDate)
+            </dt>
+            <dd class="col-sm-8 text-to-dark">
+                @Html.DisplayFor(model => model.CreationDate)
+            </dd>
+            <dt class="col-sm-4 dlBg text-to-dark">
+                @Html.DisplayNameFor(model => model.ExpireDate)
+            </dt>
+            <dd class="col-sm-8 dlBg text-to-dark">
+                @Html.DisplayFor(model => model.ExpireDate)
+            </dd>
+            <dt class="col-sm-4 text-to-dark">
+                @Html.DisplayNameFor(model => model.UsedDate)
+            </dt>
+            <dd class="col-sm-8 text-to-dark">
+                @Html.DisplayFor(model => model.UsedDate)
+            </dd>
+            <dt class="col-sm-4 dlBg text-to-dark">
+                @Html.DisplayNameFor(model => model.Approved)
+            </dt>
+            <dd class="col-sm-8 dlBg text-to-dark">
+                @Html.DisplayFor(model => model.Approved)
+            </dd>
+            <dt class="col-sm-4 text-to-dark">
+                @Html.DisplayNameFor(model => model.Role)
+            </dt>
+            <dd class="col-sm-8 text-to-dark">
+                @Html.DisplayFor(model => model.Role.RoleName)
+            </dd>
+            <dt class="col-sm-4 dlBg text-to-dark">
+                @Html.DisplayNameFor(model => model.CreatedByUser)
+            </dt>
+            <dd class="col-sm-8 dlBg text-to-dark">
+                @Html.DisplayFor(model => model.CreatedByUser.FullName)
+            </dd>
+            <dt class="col-sm-4 text-to-dark">
+                @Html.DisplayNameFor(model => model.UsedByUser)
+            </dt>
+            <dd class="col-sm-8 text-to-dark">
+                @Html.DisplayFor(model => model.UsedByUser.FullName)
+            </dd>
+            @if (!Model.Approved && ViewBag.IsAdmin)
+            {
+                <a href="/Clubs/Codes?approveCode=@Model.Id">@stringLocalizer["Approve"]</a>
+            }
+        </dl>
+        <div class="d-flex justify-content-center row">
+            <div id="qrcode" style="max-width:300px; max-height:300px;"></div>
+        </div>
+        
+    </div>
+    
+
+        <form asp-action="SendCodeEmail">
+            <div class="form-floating mt-3">
+                <input name="Email" class="form-control" />
+                <label name="Email" value="Email" class="control-label">Email</label>
+                
+            </div>
+            <input name="CodeId" value="@Model.Id" class="form-control" hidden />
+            <input name="ClubId" value="@Model.ClubId" class="form-control" hidden />
+            <div class="form-group mt-3">
+            <input type="submit" style="border-radius: 10px; background-color: #00639A; border-color: #00639A;" value="Send" class="btn btn-primary" />
+            </div>
+        </form>
+    
+</div>
+
+<script type="text/javascript" charset="utf8" src="/lib/qrcodejs/qrcode.js"></script>
+<script type="text/javascript">
+    window.onload = () => {
+        document.getElementById("modal").style.display = "block";
+        var qrcode = new QRCode(document.getElementById("qrcode"), {
+            text: `https://${window.location.host}/Clubs/Join?code=@Model.Code`,
+            width: 200,
+            height: 200,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    }
+</script>
